@@ -1,56 +1,79 @@
 # 🔮 Haunted Tarot
 
-타로카드에 폰 카메라를 비추면 카드 그림이 살아 움직이고 점괘를 알려주는 웹 AR (MindAR + A-Frame + GitHub Pages).
+Point your phone at a tarot card and watch it come alive. The illustration starts to move, and a new fortune appears below the card every time you scan it.
 
-## 파일
+It's web AR, so there's no app to install. Open the link, allow the camera, and point.
 
-| 파일 | 역할 |
+**Try it:** https://sseung30.github.io/haunted-poster/
+
+Built with [MindAR](https://hiukim.github.io/mind-ar-js-doc/) (image tracking), [A-Frame](https://aframe.io/) (rendering) and GitHub Pages (hosting).
+
+## How it works
+
+1. `poster.png` (the card) is compiled into `targets.mind`, a file of the card's feature points.
+2. In the phone browser, MindAR looks for those points in the camera feed and keeps following the card.
+3. A-Frame plays `card.mp4` directly on top of the card, sized to match it exactly.
+4. GitHub Pages serves the page over `https://`, which phone browsers require before they allow camera access.
+
+## Files
+
+| File | Purpose |
 |---|---|
-| `poster.png` | 트래킹 대상 타로카드 (인쇄할 것, 579×1000) |
-| `card.mp4` | 카드 위에 겹쳐 재생되는 움직이는 카드 영상 (Dreamina/Seedance 생성, 워터마크 제거·압축) |
-| `targets.mind` | `poster.png`를 MindAR로 컴파일한 결과 (폰이 찾을 특징점) |
-| `index.html` | 최종 AR 페이지 |
-| `sample.html` | 파이프라인 테스트용 (MindAR 샘플카드에 주황 사각형) |
-| `candidates/` | 백업 타깃 (코드로 생성한 유령의 집 포스터 + 컴파일본) |
-| `tools/` | 포스터·영상 생성, 특징점 확인 스크립트 |
+| `index.html` | The AR page |
+| `poster.png` | The tracking target: the tarot card (579×1000) |
+| `targets.mind` | `poster.png` compiled by MindAR (the feature points the phone looks for) |
+| `card.mp4` | Animated version of the card, shown on top of it (made with Seedance on Dreamina, watermark removed, compressed) |
+| `sample.html` | Pipeline check: shows an orange plane on MindAR's [sample card](https://hiukim.github.io/mind-ar-js-doc/assets/images/card-06cb9111a8e32627db6bfafc7aa22a4d.png) |
+| `candidates/` | Backup target: a generated haunted-house poster and its compiled `.mind` file |
+| `tools/` | Scripts to generate the backup poster, check feature points and compile targets |
 
-## 남은 단계
+## Try it
 
-1. **분석기 확인**: [pictarize.com/image-analyzer](https://pictarize.com/image-analyzer/)에 `poster.png` 업로드 → 점수 확인
-2. **배포**: GitHub Pages (main / root)
-3. **테스트**: 폰에서 `https://<user>.github.io/haunted-poster/sample.html` (샘플카드) → 되면 `/` (내 포스터)
-4. **인쇄**: `poster.png`를 **실제 타로카드 크기(약 7×12cm ~ 10×17cm)**로. 해상도가 낮아서 A4로 키우면 흐려져요.
+1. Show `poster.png` on a screen, or print it at real tarot-card size (about 7×12 cm to 10×17 cm). The source image is small, so it gets blurry at A4.
+2. Open the link above in **Chrome (Android) or Safari (iPhone)**. Apps' built-in browsers (Instagram, KakaoTalk, etc.) often block the camera.
+3. Allow the camera and point it at the card from 30 to 60 cm away.
+4. If the card stays still, tap the screen once. Some phones need a tap before a video can play.
 
-> ⚠️ 포스터를 수정하면 반드시 다시 컴파일하세요.
+Seeing an old version? Add `?v=2` (any new number) to the end of the URL.
 
-## 위치/크기 조정 (`index.html`)
+## Adjusting position and size
 
-포스터 가로 = `1`, 중심 = `0 0 0`. 이 카드는 세로가 약 `1.727`라서 y 범위는 대략 `-0.86 ~ 0.86`.
-16:9 영상은 `height = width × 0.5625`.
+Inside the target, the card's width is `1` and `0 0 0` is its centre. The card is about `1.727` tall, so y runs from about `-0.86` to `0.86`.
 
-## 로컬 테스트 (노트북 웹캠)
+The video covers 95.9% of the card's width (`width="0.959" height="1.724"`). This was measured by matching video frames against `poster.png`, because the generated clip crops a little off each side.
 
-`localhost`는 https 없이도 카메라가 허용돼서 커밋-대기 없이 빠르게 확인 가능:
+## Local testing
+
+Browsers allow the camera on `localhost` without https, so you can test with a laptop webcam without waiting for a deploy:
 
 ```sh
-python3 -m http.server 8000   # → http://localhost:8000
+python3 -m http.server 8000   # then open http://localhost:8000
 ```
 
-포스터를 폰 화면에 띄우고 노트북 웹캠에 비춰보면 됩니다.
+Show the card on your phone screen and hold it up to the webcam.
 
-## 다시 생성하기
+## Rebuilding
 
 ```sh
+# Check feature-point coverage (writes tools/features_preview.png)
 uv run --with opencv-python-headless python tools/check_features.py poster.png
 
-# 카드 영상 다듬기 (Dreamina 원본 → 워터마크 제거, 30fps, 무음, 압축)
+# Recompile after ANY change to poster.png (first time only: cd tools/compile && npm i)
+node tools/compile/compile.mjs targets.mind poster.png
+
+# Clean up a new Dreamina clip: remove watermarks, 30 fps, no audio, compress
 ffmpeg -i dreamina.mp4 -vf "delogo=x=12:y=11:w=40:h=32,delogo=x=510:y=1194:w=188:h=46,fps=30" \
   -an -c:v libx264 -pix_fmt yuv420p -crf 26 -preset slow -movflags +faststart card.mp4
-
-# 포스터를 바꿨으면 반드시 재컴파일 (처음 한 번: cd tools/compile && npm i)
-node tools/compile/compile.mjs targets.mind poster.png
 ```
 
-## 크레딧
+The `delogo` boxes match the 704×1248 clip used here. Check the watermark positions in a new clip before reusing them.
 
-카드 일러스트: [Happy Halloween Tarot](https://playingcarddecks.com/products/happy-halloween-tarot) — Soni Graves. 출처를 밝히고 사용.
+## Lessons
+
+- **Spooky in content, not in palette.** Tracking needs busy, high-contrast, asymmetric art. Dark, minimal, foggy designs give the phone nothing to lock onto.
+- **Lock the camera in the video prompt.** If the AI clip zooms or pans, it no longer lines up with the real card.
+- **Muted + `playsinline`** is what lets the video autoplay on phones.
+
+## Credits
+
+Card art: [Happy Halloween Tarot](https://playingcarddecks.com/products/happy-halloween-tarot) by Soni Graves. Used with credit for a hackathon demo.

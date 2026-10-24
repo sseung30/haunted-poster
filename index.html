@@ -1,60 +1,182 @@
 <html>
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
     <title>Haunted Tarot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Cinzel:wght@500;700&family=DM+Sans:wght@400;600&display=swap">
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <script>
-      // A-Frame's default font is ASCII only, so fortunes stay in English
       const FORTUNES = [
-        "A harvest of good luck\nis already growing for you.",
-        "Someone will bring you\nsweets this week.",
-        "Your hard work will bloom\nlike candy corn in autumn.",
-        "Money finds its way home\nto those who tend the garden.",
-        "Rest your bones.\nAbundance comes slowly.",
-        "A small gift will turn\ninto something big.",
+        "A harvest of good luck is already growing for you.",
+        "Someone will bring you sweets this week.",
+        "Your hard work will bloom like candy corn in autumn.",
+        "Money finds its way home to those who tend the garden.",
+        "Rest your bones. Abundance comes slowly.",
+        "A small gift will turn into something big.",
       ];
 
       document.addEventListener("DOMContentLoaded", function () {
+        const scene = document.querySelector("a-scene");
         const target = document.querySelector("#card-target");
         const video = document.querySelector("#card-video");
-        const fortune = document.querySelector("#fortune");
-        const hint = document.querySelector("#hint");
+        const $ = (id) => document.getElementById(id);
+        const show = (id, on) => $(id).classList.toggle("hidden", !on);
         let last = -1;
+
+        $("summon").addEventListener("click", function () {
+          // Playing inside the tap unlocks the video, so later autoplay works on strict phones too
+          video.play().then(() => video.pause()).catch(() => {});
+          show("start", false);
+          show("loading", true);
+          scene.systems["mindar-image-system"].start();
+        });
+
+        scene.addEventListener("arReady", function () {
+          show("loading", false);
+          show("scan", true);
+        });
+        scene.addEventListener("arError", function () {
+          show("loading", false);
+          show("error", true);
+        });
 
         target.addEventListener("targetFound", function () {
           let i;
           do { i = Math.floor(Math.random() * FORTUNES.length); } while (i === last && FORTUNES.length > 1);
           last = i;
-          fortune.setAttribute("value", FORTUNES[i]);
+          $("fortune-text").textContent = FORTUNES[i];
           video.currentTime = 0;
           video.play();
-          hint.textContent = "✨ Tap the screen if the card is frozen";
+          show("scan", false);
+          show("fortune", true);
         });
         target.addEventListener("targetLost", function () {
           video.pause();
-          hint.textContent = "Point your camera at the tarot card";
+          show("fortune", false);
+          show("scan", true);
         });
-        document.addEventListener("click", function () { video.play(); });
+        document.addEventListener("click", function () { if (!video.paused) return; video.play().catch(() => {}); });
       });
     </script>
     <style>
-      #hint, #credit {
-        position: fixed; left: 50%; transform: translateX(-50%); z-index: 10;
-        color: #fff; font-family: system-ui, sans-serif; pointer-events: none;
+      :root { --ink: #1c1210; --ink-2: #2a1812; --cream: #f6e9d2; --muted: #d9c4a3; --orange: #e8692c; --gold: #f2b544; }
+      .hidden { display: none !important; }
+      .overlay {
+        position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        padding: 24px; text-align: center; color: var(--cream); font-family: "DM Sans", system-ui, sans-serif;
       }
-      #hint {
-        bottom: 40px; padding: 10px 16px; border-radius: 999px; background: rgba(0, 0, 0, 0.6);
-        font-size: 15px; font-weight: 600; white-space: nowrap;
+
+      /* ---- start screen ---- */
+      #start { background: radial-gradient(circle at 50% 35%, #3a1d12 0%, var(--ink) 70%); overflow: hidden; gap: 18px; }
+      .star { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: var(--gold); animation: twinkle 2.4s ease-in-out infinite; }
+      .bat { position: absolute; font-size: 28px; animation: flap 9s linear infinite; opacity: 0.85; }
+      .eyebrow { font-size: 13px; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); }
+      h1 { margin: 0; font-family: "Cinzel", Georgia, serif; font-weight: 700; font-size: 40px; line-height: 1.05; text-shadow: 0 0 24px rgba(232, 105, 44, 0.55); }
+      .card-preview {
+        width: 46vw; max-width: 200px; border-radius: 12px; transform: rotate(-4deg);
+        box-shadow: 0 0 40px rgba(232, 105, 44, 0.45), 0 18px 40px rgba(0, 0, 0, 0.6); animation: float 4s ease-in-out infinite;
       }
-      #credit { bottom: 10px; font-size: 11px; opacity: 0.8; white-space: nowrap; pointer-events: auto; }
-      #credit a { color: #ffb347; }
+      .tagline { margin: 0; font-family: "Caveat", cursive; font-size: 26px; color: var(--muted); max-width: 300px; line-height: 1.2; }
+      #summon {
+        margin-top: 6px; padding: 16px 30px; border: 0; border-radius: 999px; cursor: pointer;
+        background: linear-gradient(180deg, #f08a3e, var(--orange)); color: var(--ink);
+        font-family: "Cinzel", Georgia, serif; font-weight: 700; font-size: 18px; letter-spacing: 1px;
+        box-shadow: 0 0 0 4px rgba(242, 181, 68, 0.25), 0 0 32px rgba(232, 105, 44, 0.6); animation: glow 2.2s ease-in-out infinite;
+      }
+      .fine { font-size: 13px; color: #bfa98a; margin: 0; }
+
+      /* ---- loading ---- */
+      #loading { background: var(--ink); gap: 16px; }
+      .pumpkin { font-size: 64px; animation: bounce 0.9s ease-in-out infinite; }
+      .loading-text { font-family: "Cinzel", Georgia, serif; font-size: 20px; letter-spacing: 1px; }
+
+      /* ---- scanning frame ---- */
+      #scan { z-index: 15; pointer-events: none; gap: 22px; }
+      .frame { position: relative; width: 58vw; max-width: 280px; aspect-ratio: 579 / 1000; animation: pulse 1.8s ease-in-out infinite; }
+      .frame i { position: absolute; width: 34px; height: 34px; border: 4px solid var(--gold); filter: drop-shadow(0 0 8px var(--orange)); }
+      .frame i:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; border-top-left-radius: 14px; }
+      .frame i:nth-child(2) { top: 0; right: 0; border-left: 0; border-bottom: 0; border-top-right-radius: 14px; }
+      .frame i:nth-child(3) { bottom: 0; left: 0; border-right: 0; border-top: 0; border-bottom-left-radius: 14px; }
+      .frame i:nth-child(4) { bottom: 0; right: 0; border-left: 0; border-top: 0; border-bottom-right-radius: 14px; }
+      .scan-text {
+        padding: 10px 18px; border-radius: 999px; background: rgba(28, 18, 16, 0.75); border: 1px solid rgba(242, 181, 68, 0.5);
+        font-family: "Cinzel", Georgia, serif; font-size: 15px; letter-spacing: 1px;
+      }
+
+      /* ---- fortune banner ---- */
+      #fortune {
+        position: fixed; left: 16px; right: 16px; bottom: calc(40px + env(safe-area-inset-bottom)); z-index: 15; pointer-events: none;
+        padding: 14px 18px 16px; border-radius: 18px; text-align: center; color: var(--cream);
+        background: rgba(28, 18, 16, 0.85); border: 1px solid var(--orange); box-shadow: 0 0 30px rgba(232, 105, 44, 0.45);
+        animation: rise 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+      }
+      #fortune .eyebrow { font-family: "Cinzel", Georgia, serif; font-size: 12px; }
+      #fortune-text { margin: 6px 0 0; font-family: "Caveat", cursive; font-size: 28px; line-height: 1.15; }
+
+      /* ---- error ---- */
+      #error { background: var(--ink); gap: 14px; }
+      #error p { margin: 0; max-width: 300px; line-height: 1.4; color: var(--muted); }
+
+      #credit {
+        position: fixed; left: 0; right: 0; bottom: calc(10px + env(safe-area-inset-bottom)); z-index: 30; text-align: center;
+        font: 11px "DM Sans", system-ui, sans-serif; color: rgba(246, 233, 210, 0.75);
+      }
+      #credit a { color: var(--gold); }
+
+      @keyframes twinkle { 0%, 100% { opacity: 0.2; transform: scale(0.6); } 50% { opacity: 1; transform: scale(1.2); } }
+      @keyframes flap { 0% { transform: translate(-20vw, 0) scaleX(1); } 50% { transform: translate(60vw, -6vh) scaleX(1); } 100% { transform: translate(130vw, 4vh) scaleX(1); } }
+      @keyframes float { 0%, 100% { transform: rotate(-4deg) translateY(0); } 50% { transform: rotate(-2deg) translateY(-10px); } }
+      @keyframes glow { 0%, 100% { box-shadow: 0 0 0 4px rgba(242, 181, 68, 0.25), 0 0 24px rgba(232, 105, 44, 0.5); } 50% { box-shadow: 0 0 0 6px rgba(242, 181, 68, 0.35), 0 0 44px rgba(232, 105, 44, 0.8); } }
+      @keyframes bounce { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-16px) rotate(6deg); } }
+      @keyframes pulse { 0%, 100% { opacity: 0.55; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1.02); } }
+      @keyframes rise { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     </style>
   </head>
   <body>
-    <div id="hint">Point your camera at the tarot card</div>
+    <div id="start" class="overlay">
+      <span class="star" style="top:8%;left:12%"></span>
+      <span class="star" style="top:14%;left:78%;animation-delay:.6s"></span>
+      <span class="star" style="top:30%;left:6%;animation-delay:1.2s"></span>
+      <span class="star" style="top:24%;left:90%;animation-delay:.3s"></span>
+      <span class="star" style="top:70%;left:8%;animation-delay:1.6s"></span>
+      <span class="star" style="top:82%;left:86%;animation-delay:.9s"></span>
+      <span class="star" style="top:56%;left:94%;animation-delay:2s"></span>
+      <span class="bat" style="top:10%;animation-delay:0s">🦇</span>
+      <span class="bat" style="top:20%;font-size:20px;animation-delay:-4s;animation-duration:12s">🦇</span>
+      <div class="eyebrow">A Halloween reading</div>
+      <h1>Haunted<br>Tarot</h1>
+      <img class="card-preview" src="./poster.png" alt="The Queen of Pentacles tarot card">
+      <p class="tagline">The Queen of Pentacles has a message for you…</p>
+      <button id="summon">🕯️ Summon the card</button>
+      <p class="fine">We’ll ask to use your camera.</p>
+    </div>
+
+    <div id="loading" class="overlay hidden">
+      <div class="pumpkin">🎃</div>
+      <div class="loading-text">Waking the spirits…</div>
+    </div>
+
+    <div id="scan" class="overlay hidden">
+      <div class="frame"><i></i><i></i><i></i><i></i></div>
+      <div class="scan-text">Find the Queen of Pentacles</div>
+    </div>
+
+    <div id="fortune" class="hidden">
+      <div class="eyebrow">✦ The Queen of Pentacles says ✦</div>
+      <p id="fortune-text"></p>
+    </div>
+
+    <div id="error" class="overlay hidden">
+      <div class="pumpkin">👻</div>
+      <div class="loading-text">The spirits can’t see you</div>
+      <p>Allow camera access for this site, then reload. If you opened this inside another app, open it in Chrome or Safari.</p>
+    </div>
+
     <div id="credit">Card art: <a href="https://playingcarddecks.com/products/happy-halloween-tarot">Happy Halloween Tarot</a> by Soni Graves</div>
-    <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiScanning: no" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind; autoStart: false; uiLoading: no; uiScanning: no; uiError: no" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
       <a-assets>
         <video id="card-video" src="./card.mp4" loop muted playsinline preload="auto"></video>
       </a-assets>
@@ -63,10 +185,6 @@
       <a-entity id="card-target" mindar-image-target="targetIndex: 0">
         <!-- the clip crops ~2% off each side of the card, hence width 0.959 (measured by matching frames to poster.png) -->
         <a-video src="#card-video" position="0 0 0.001" width="0.959" height="1.724"></a-video>
-        <!-- fortune below the card -->
-        <a-plane position="0 -1.1 0.02" width="1.1" height="0.38" color="#1a0b2e" opacity="0.85"></a-plane>
-        <a-text value="THE QUEEN OF PENTACLES" color="#ffb347" align="center" width="1.6" position="0 -0.97 0.03"></a-text>
-        <a-text id="fortune" value="" color="#ffffff" align="center" width="1.8" position="0 -1.13 0.03"></a-text>
       </a-entity>
     </a-scene>
   </body>

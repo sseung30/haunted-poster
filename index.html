@@ -73,13 +73,11 @@
       .bat { position: absolute; font-size: 28px; animation: flap 9s linear infinite; opacity: 0.85; }
       .eyebrow { font-size: 13px; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); }
       h1 { margin: 0; font-family: "Pirata One", Georgia, serif; font-weight: 400; font-size: 56px; line-height: 1; letter-spacing: 1px; text-shadow: 0 0 24px rgba(232, 105, 44, 0.55); }
-      .card-preview {
-        width: 46vw; max-width: 200px; border-radius: 12px; transform: rotate(-4deg);
-        box-shadow: 0 0 40px rgba(232, 105, 44, 0.45), 0 18px 40px rgba(0, 0, 0, 0.6); animation: float 4s ease-in-out infinite;
-      }
-      .tagline { margin: 0; font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-weight: 500; font-size: 24px; color: var(--muted); max-width: 300px; line-height: 1.2; }
-      .waking { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
-      .waking .pumpkin { font-size: 30px; }
+      .card-wrap { position: relative; width: 46vw; max-width: 200px; animation: float 4s ease-in-out infinite; }
+      /* drop-shadow follows the card's transparent rounded corners, unlike box-shadow */
+      .card-preview { display: block; width: 100%; filter: drop-shadow(0 0 22px rgba(232, 105, 44, 0.5)) drop-shadow(0 14px 22px rgba(0, 0, 0, 0.6)); }
+      .card-wrap .pumpkin { position: absolute; right: -22px; bottom: -18px; font-size: 44px; }
+      .tagline { margin: 6px 0 0; font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-weight: 500; font-size: 26px; color: var(--muted); animation: breathe 2.4s ease-in-out infinite; }
       .fine { font-size: 13px; color: #bfa98a; margin: 0; }
 
       /* ---- loading ---- */
@@ -128,6 +126,7 @@
       @keyframes twinkle { 0%, 100% { opacity: 0.2; transform: scale(0.6); } 50% { opacity: 1; transform: scale(1.2); } }
       @keyframes flap { 0% { transform: translate(-20vw, 0) scaleX(1); } 50% { transform: translate(60vw, -6vh) scaleX(1); } 100% { transform: translate(130vw, 4vh) scaleX(1); } }
       @keyframes float { 0%, 100% { transform: rotate(-4deg) translateY(0); } 50% { transform: rotate(-2deg) translateY(-10px); } }
+      @keyframes breathe { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
       @keyframes glow { 0%, 100% { box-shadow: 0 0 0 4px rgba(242, 181, 68, 0.25), 0 0 24px rgba(232, 105, 44, 0.5); } 50% { box-shadow: 0 0 0 6px rgba(242, 181, 68, 0.35), 0 0 44px rgba(232, 105, 44, 0.8); } }
       @keyframes bounce { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-16px) rotate(6deg); } }
       @keyframes pulse { 0%, 100% { opacity: 0.55; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1.02); } }
@@ -145,11 +144,12 @@
       <span class="star" style="top:56%;left:94%;animation-delay:2s"></span>
       <span class="bat" style="top:10%;animation-delay:0s">🦇</span>
       <span class="bat" style="top:20%;font-size:20px;animation-delay:-4s;animation-duration:12s">🦇</span>
-      <div class="eyebrow">A Halloween reading</div>
       <h1>Haunted<br>Tarot</h1>
-      <img class="card-preview" src="./poster.png" alt="The Queen of Pentacles tarot card">
-      <p class="tagline">The Queen of Pentacles has a message for you…</p>
-      <div class="waking"><span class="pumpkin">🎃</span><span class="loading-text">Waking the spirits…</span></div>
+      <div class="card-wrap">
+        <img class="card-preview" src="./poster.png" alt="The Queen of Pentacles tarot card">
+        <span class="pumpkin">🎃</span>
+      </div>
+      <p class="tagline">The message is coming…</p>
       <p class="fine">Allow the camera to begin</p>
     </div>
 
@@ -178,10 +178,10 @@
         <video id="card-video" src="./card.mp4" loop muted playsinline preload="auto"></video>
       </a-assets>
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-      <!-- card width = 1, height ≈ 1.727, so the card spans y -0.86 .. 0.86 -->
+      <!-- card width = 1, height ≈ 1.725, so the card spans y -0.86 .. 0.86 -->
       <a-entity id="card-target" mindar-image-target="targetIndex: 0">
-        <!-- the clip crops ~2% off each side of the card, hence width 0.959 (measured by matching frames to poster.png) -->
-        <a-video src="#card-video" position="0 0 0.001" width="0.959" height="1.724"></a-video>
+        <!-- the clip crops a little off each side of the card, hence width 0.968 (measured by matching frames to poster.png) -->
+        <a-video src="#card-video" position="0 0 0.001" width="0.968" height="1.739"></a-video>
       </a-entity>
     </a-scene>
   </body>

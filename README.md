@@ -20,7 +20,7 @@ Built with [MindAR](https://hiukim.github.io/mind-ar-js-doc/) (image tracking), 
 | File | Purpose |
 |---|---|
 | `index.html` | The AR page |
-| `poster.png` | The tracking target: the tarot card (579×1000) |
+| `poster.png` | The tracking target: the tarot card (574×990, transparent rounded corners) |
 | `targets.mind` | `poster.png` compiled by MindAR (the feature points the phone looks for) |
 | `card.mp4` | Animated version of the card, shown on top of it (made with Seedance on Dreamina, watermark removed, compressed) |
 | `sample.html` | Pipeline check: shows an orange plane on MindAR's [sample card](https://hiukim.github.io/mind-ar-js-doc/assets/images/card-06cb9111a8e32627db6bfafc7aa22a4d.png) |
@@ -38,9 +38,9 @@ Seeing an old version? Add `?v=2` (any new number) to the end of the URL.
 
 ## Adjusting position and size
 
-Inside the target, the card's width is `1` and `0 0 0` is its centre. The card is about `1.727` tall, so y runs from about `-0.86` to `0.86`.
+Inside the target, the card's width is `1` and `0 0 0` is its centre. The card is about `1.725` tall, so y runs from about `-0.86` to `0.86`.
 
-The video covers 95.9% of the card's width (`width="0.959" height="1.724"`). This was measured by matching video frames against `poster.png`, because the generated clip crops a little off each side.
+The video covers 96.8% of the card’s width (`width="0.968" height="1.739"`). This was measured by matching video frames against `poster.png`, because the generated clip crops a little off each side.
 
 ## Local testing
 

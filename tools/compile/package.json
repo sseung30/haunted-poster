@@ -1,0 +1,13 @@
+{
+  "name": "haunted-poster-compile",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@tensorflow/tfjs": "^3.21.0",
+    "canvas": "^3.1.0",
+    "mind-ar": "1.2.5"
+  },
+  "overrides": {
+    "canvas": "^3.1.0"
+  }
+}

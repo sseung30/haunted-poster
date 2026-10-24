@@ -1,0 +1,79 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Haunted Tarot</title>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    <script>
+      // A-Frame's default font is ASCII only, so fortunes stay in English
+      const FORTUNES = [
+        "A harvest of good luck\nis already growing for you.",
+        "Someone will bring you\nsweets this week.",
+        "Your hard work will bloom\nlike candy corn in autumn.",
+        "Money finds its way home\nto those who tend the garden.",
+        "Rest your bones.\nAbundance comes slowly.",
+        "A small gift will turn\ninto something big.",
+      ];
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const target = document.querySelector("#card-target");
+        const video = document.querySelector("#ghost-video");
+        const ghost = document.querySelector("#ghost-rise");
+        const fortune = document.querySelector("#fortune");
+        const hint = document.querySelector("#hint");
+        let last = -1;
+
+        target.addEventListener("targetFound", function () {
+          let i;
+          do { i = Math.floor(Math.random() * FORTUNES.length); } while (i === last && FORTUNES.length > 1);
+          last = i;
+          fortune.setAttribute("value", FORTUNES[i]);
+          ghost.emit("rise");
+          video.play();
+          hint.textContent = "👻 Tap the screen if the ghost is frozen";
+        });
+        target.addEventListener("targetLost", function () {
+          video.pause();
+          hint.textContent = "Point your camera at the tarot card";
+        });
+        document.addEventListener("click", function () { video.play(); });
+      });
+    </script>
+    <style>
+      #hint, #credit {
+        position: fixed; left: 50%; transform: translateX(-50%); z-index: 10;
+        color: #fff; font-family: system-ui, sans-serif; pointer-events: none;
+      }
+      #hint {
+        bottom: 40px; padding: 10px 16px; border-radius: 999px; background: rgba(0, 0, 0, 0.6);
+        font-size: 15px; font-weight: 600; white-space: nowrap;
+      }
+      #credit { bottom: 10px; font-size: 11px; opacity: 0.8; white-space: nowrap; pointer-events: auto; }
+      #credit a { color: #ffb347; }
+    </style>
+  </head>
+  <body>
+    <div id="hint">Point your camera at the tarot card</div>
+    <div id="credit">Card art: <a href="https://playingcarddecks.com/products/happy-halloween-tarot">Happy Halloween Tarot</a> by Soni Graves</div>
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiScanning: no" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+      <a-assets>
+        <video id="ghost-video" src="./ghost.mp4" loop muted playsinline preload="auto"></video>
+      </a-assets>
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+      <!-- card width = 1, height ≈ 1.73, so the card spans y -0.86 .. 0.86 -->
+      <a-entity id="card-target" mindar-image-target="targetIndex: 0">
+        <!-- ghost rises out of the card and hovers above its top edge -->
+        <a-entity id="ghost-rise" position="0 1.2 0.05"
+                  animation__rise="property: position; from: 0 0.3 0.05; to: 0 1.2 0.05; dur: 1400; easing: easeOutBack; startEvents: rise">
+          <a-entity animation__bob="property: position; from: 0 -0.03 0; to: 0 0.03 0; dur: 1100; easing: easeInOutSine; loop: true; dir: alternate">
+            <a-video src="#ghost-video" width="0.9" height="0.50625"></a-video>
+          </a-entity>
+        </a-entity>
+        <!-- fortune below the card -->
+        <a-plane position="0 -1.1 0.02" width="1.1" height="0.38" color="#1a0b2e" opacity="0.85"></a-plane>
+        <a-text value="THE QUEEN OF PENTACLES" color="#ffb347" align="center" width="1.6" position="0 -0.97 0.03"></a-text>
+        <a-text id="fortune" value="" color="#ffffff" align="center" width="1.8" position="0 -1.13 0.03"></a-text>
+      </a-entity>
+    </a-scene>
+  </body>
+</html>

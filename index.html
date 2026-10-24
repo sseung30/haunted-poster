@@ -17,8 +17,7 @@
 
       document.addEventListener("DOMContentLoaded", function () {
         const target = document.querySelector("#card-target");
-        const video = document.querySelector("#ghost-video");
-        const ghost = document.querySelector("#ghost-rise");
+        const video = document.querySelector("#card-video");
         const fortune = document.querySelector("#fortune");
         const hint = document.querySelector("#hint");
         let last = -1;
@@ -28,9 +27,9 @@
           do { i = Math.floor(Math.random() * FORTUNES.length); } while (i === last && FORTUNES.length > 1);
           last = i;
           fortune.setAttribute("value", FORTUNES[i]);
-          ghost.emit("rise");
+          video.currentTime = 0;
           video.play();
-          hint.textContent = "👻 Tap the screen if the ghost is frozen";
+          hint.textContent = "✨ Tap the screen if the card is frozen";
         });
         target.addEventListener("targetLost", function () {
           video.pause();
@@ -57,18 +56,13 @@
     <div id="credit">Card art: <a href="https://playingcarddecks.com/products/happy-halloween-tarot">Happy Halloween Tarot</a> by Soni Graves</div>
     <a-scene mindar-image="imageTargetSrc: ./targets.mind; uiScanning: no" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
       <a-assets>
-        <video id="ghost-video" src="./ghost.mp4" loop muted playsinline preload="auto"></video>
+        <video id="card-video" src="./card.mp4" loop muted playsinline preload="auto"></video>
       </a-assets>
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-      <!-- card width = 1, height ≈ 1.73, so the card spans y -0.86 .. 0.86 -->
+      <!-- card width = 1, height ≈ 1.727, so the card spans y -0.86 .. 0.86 -->
       <a-entity id="card-target" mindar-image-target="targetIndex: 0">
-        <!-- ghost rises out of the card and hovers above its top edge -->
-        <a-entity id="ghost-rise" position="0 1.2 0.05"
-                  animation__rise="property: position; from: 0 0.3 0.05; to: 0 1.2 0.05; dur: 1400; easing: easeOutBack; startEvents: rise">
-          <a-entity animation__bob="property: position; from: 0 -0.03 0; to: 0 0.03 0; dur: 1100; easing: easeInOutSine; loop: true; dir: alternate">
-            <a-video src="#ghost-video" width="0.9" height="0.50625"></a-video>
-          </a-entity>
-        </a-entity>
+        <!-- the clip crops ~2% off each side of the card, hence width 0.959 (measured by matching frames to poster.png) -->
+        <a-video src="#card-video" position="0 0 0.001" width="0.959" height="1.724"></a-video>
         <!-- fortune below the card -->
         <a-plane position="0 -1.1 0.02" width="1.1" height="0.38" color="#1a0b2e" opacity="0.85"></a-plane>
         <a-text value="THE QUEEN OF PENTACLES" color="#ffb347" align="center" width="1.6" position="0 -0.97 0.03"></a-text>

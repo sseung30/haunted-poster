@@ -1,13 +1,13 @@
 # 🔮 Haunted Tarot
 
-타로카드에 폰 카메라를 비추면 유령이 카드 위로 떠오르고 점괘를 알려주는 웹 AR (MindAR + A-Frame + GitHub Pages).
+타로카드에 폰 카메라를 비추면 카드 그림이 살아 움직이고 점괘를 알려주는 웹 AR (MindAR + A-Frame + GitHub Pages).
 
 ## 파일
 
 | 파일 | 역할 |
 |---|---|
 | `poster.png` | 트래킹 대상 타로카드 (인쇄할 것, 579×1000) |
-| `ghost.mp4` | 포스터 위에 재생될 16:9 루프 영상 |
+| `card.mp4` | 카드 위에 겹쳐 재생되는 움직이는 카드 영상 (Dreamina/Seedance 생성, 워터마크 제거·압축) |
 | `targets.mind` | `poster.png`를 MindAR로 컴파일한 결과 (폰이 찾을 특징점) |
 | `index.html` | 최종 AR 페이지 |
 | `sample.html` | 파이프라인 테스트용 (MindAR 샘플카드에 주황 사각형) |
@@ -41,9 +41,11 @@ python3 -m http.server 8000   # → http://localhost:8000
 ## 다시 생성하기
 
 ```sh
-uv run --with pillow python tools/make_poster.py
-uv run --with opencv-python-headless python tools/check_features.py
-uv run --with pillow python tools/make_ghost_video.py
+uv run --with opencv-python-headless python tools/check_features.py poster.png
+
+# 카드 영상 다듬기 (Dreamina 원본 → 워터마크 제거, 30fps, 무음, 압축)
+ffmpeg -i dreamina.mp4 -vf "delogo=x=12:y=11:w=40:h=32,delogo=x=510:y=1194:w=188:h=46,fps=30" \
+  -an -c:v libx264 -pix_fmt yuv420p -crf 26 -preset slow -movflags +faststart card.mp4
 
 # 포스터를 바꿨으면 반드시 재컴파일 (처음 한 번: cd tools/compile && npm i)
 node tools/compile/compile.mjs targets.mind poster.png
